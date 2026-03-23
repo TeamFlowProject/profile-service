@@ -1,6 +1,5 @@
 import asyncio
 
-import aiohttp
 import psycopg
 import typer
 import uvicorn
@@ -26,8 +25,12 @@ async def _run(settings: Settings) -> None:
     profile_repository = ProfileNeo4jRepository(db_connection)
     logger.debug("Database connection established")
 
-    aio_session = aiohttp.ClientSession()
-    keycloak = KeycloakClient(settings.keycloak_url, aio_session)
+    keycloak = KeycloakClient(
+        settings.keycloak_url, 
+        settings.keycloak_client_id,
+        settings.keycloak_realm,
+        settings.keycloak_client_secret
+    )
     logger.debug("Keycloak client created {}", settings.keycloak_url)
 
     # Starting Kafka producer
