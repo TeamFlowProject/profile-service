@@ -8,6 +8,7 @@ from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from fastapi import FastAPI
 from loguru import logger
 from neo4j import GraphDatabase
+from keycloak import KeycloakAdmin
 
 from src.adapters.clients.kafka_producer import KafkaProducerClient
 from src.adapters.clients.keycloak import KeycloakClient
@@ -25,13 +26,14 @@ async def _run(settings: Settings) -> None:
     profile_repository = ProfileNeo4jRepository(db_connection)
     logger.debug("Database connection established")
 
-    keycloak = KeycloakClient(
-        settings.keycloak_url, 
-        settings.keycloak_client_id,
-        settings.keycloak_realm,
-        settings.keycloak_client_secret
-    )
-    logger.debug("Keycloak client created {}", settings.keycloak_url)
+    admin = KeycloakAdmin(
+            server_url=settings.keycloak_server_url,
+            username=settings.keycloak_username,
+            password=settings.keycloak_password,
+            realm_name=settings.keycloak_realm_name,
+            user_realm_name=settings.keycloak_user_realm_name)
+    keycloak = KeycloakClient(admin)
+    logger.debug("Keycloak client created {}", settings.keycloak_server_url)
 
     # Starting Kafka producer
     logger.debug("Starting Kafka producer: {}", settings.kafka_bootstrap)
