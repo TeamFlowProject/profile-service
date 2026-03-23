@@ -5,7 +5,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8")
 
-    database_dsn: str = "postgresql://user:password@localhost:5432/track_db"
+    neo4j_uri: str = "bolt://localhost:7687"
+    neo4j_auth: tuple = ("neo4j", "password")
     kafka_bootstrap: str = "localhost:9092"
     keycloak_url: str = "localhost:8001"
     http_host: str = "0.0.0.0"

@@ -8,13 +8,11 @@ import sys
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from fastapi import FastAPI
 from loguru import logger
-
-# if sys.platform == "win32":
-#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+from neo4j import GraphDatabase
 
 from src.adapters.clients.kafka_producer import KafkaProducerClient
 from src.adapters.clients.keycloak import KeycloakClient
-from src.adapters.repository.profile_repository import ProfilePostgresRepository
+from src.adapters.repository.profile_repository import ProfileNeo4jRepository
 from src.api.http.profile_router import create_profile_router
 from src.api.kafka.profile_consumer import ProfileKafkaConsumer
 from src.services.profile_service import ProfileService
@@ -23,9 +21,9 @@ from src.config import Settings
 
 async def _run(settings: Settings) -> None:
     # Connecting database interconnection implementation with Duck Typing
-    logger.debug("Connecting to database: {}", settings.database_dsn)
-    db_connection = await psycopg.AsyncConnection.connect(settings.database_dsn)
-    profile_repository = ProfilePostgresRepository(db_connection)
+    logger.debug("Connecting to database: {}", settings.neo4j_uri)
+    db_connection = GraphDatabase.driver(settings.neo4j_uri, auth=settings.neo4j_auth)
+    profile_repository = ProfileNeo4jRepository(db_connection)
     logger.debug("Database connection established")
 
     aio_session = aiohttp.ClientSession()
@@ -66,7 +64,7 @@ async def _run(settings: Settings) -> None:
                 settings.http_host, settings.http_port)
 
     try:
-        await asyncio.gather(server.server(), kafka_consumer.start())
+        await asyncio.gather(server.serve(), kafka_consumer.start())
     finally:
         logger.debug("Shutting down")
         await producer.stop()
