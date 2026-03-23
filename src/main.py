@@ -1,5 +1,6 @@
 import asyncio
 
+import aiohttp
 import psycopg
 import typer
 import uvicorn
@@ -8,7 +9,11 @@ from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from fastapi import FastAPI
 from loguru import logger
 
+# if sys.platform == "win32":
+#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from src.adapters.clients.kafka_producer import KafkaProducerClient
+from src.adapters.clients.keycloak import KeycloakClient
 from src.adapters.repository.profile_repository import ProfilePostgresRepository
 from src.api.http.profile_router import create_profile_router
 from src.api.kafka.profile_consumer import ProfileKafkaConsumer
@@ -23,6 +28,10 @@ async def _run(settings: Settings) -> None:
     profile_repository = ProfilePostgresRepository(db_connection)
     logger.debug("Database connection established")
 
+    aio_session = aiohttp.ClientSession()
+    keycloak = KeycloakClient(settings.keycloak_url, aio_session)
+    logger.debug("Keycloak client created {}", settings.keycloak_url)
+
     # Starting Kafka producer
     logger.debug("Starting Kafka producer: {}", settings.kafka_bootstrap)
     producer = AIOKafkaProducer(bootstrap_servers=settings.kafka_bootstrap)
@@ -31,7 +40,8 @@ async def _run(settings: Settings) -> None:
     logger.debug("Kafka producer started")
 
     # Starting service itself with prepared submodules
-    profile_service = ProfileService(profile_repository, kafka_producer)
+    profile_service = ProfileService(
+        profile_repository, kafka_producer, keycloak)
     logger.debug("Profile Service started")
 
     # Start Fastapi app and make it able to use all endpoints

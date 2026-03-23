@@ -1,5 +1,5 @@
 from aiokafka import AIOKafkaConsumer
-from services.profile_service import ProfileService
+from src.services.profile_service import ProfileService
 
 
 class ProfileKafkaConsumer:
