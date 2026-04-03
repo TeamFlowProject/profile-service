@@ -2,5 +2,5 @@ class ProfileError(Exception):
     ...
 
 
-class ProfileNotFound(ProfileError):
+class ProfileNotFoundError(ProfileError):
     ...

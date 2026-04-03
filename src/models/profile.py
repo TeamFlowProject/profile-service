@@ -16,7 +16,7 @@ class Profile:
     Profile dataclass model
     '''
     id: uuid.UUID
-    # password_hash: ?
+    password_hash: str
     registration_date: datetime
     status: ProfileStatusEnum
     full_name: str

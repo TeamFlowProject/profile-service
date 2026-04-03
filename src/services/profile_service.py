@@ -50,6 +50,7 @@ class ProfileService:
         try:
             profile = await self._profile_repository.get_profile(id)
             await self._kafka_producer.send_update_profile(profile)
+            return profile
         except adapter_errors.ProfileNotFoundError as e:
             raise services_errors.ProfileNotFoundError(
                 "Couldn't find profile by given ID") from e
