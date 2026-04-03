@@ -1,0 +1,6 @@
+class ProfileError(Exception):
+    ...
+
+
+class ProfileNotFound(ProfileError):
+    ...
