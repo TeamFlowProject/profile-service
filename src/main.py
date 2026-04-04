@@ -1,13 +1,12 @@
 import asyncio
 
-import psycopg
 import typer
 import uvicorn
 import sys
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from fastapi import FastAPI
 from loguru import logger
-from neo4j import GraphDatabase
+from neo4j import AsyncGraphDatabase
 from keycloak import KeycloakAdmin
 
 from src.adapters.clients.kafka_producer import KafkaProducerClient
@@ -22,16 +21,17 @@ from src.config import Settings
 async def _run(settings: Settings) -> None:
     # Connecting database interconnection implementation with Duck Typing
     logger.debug("Connecting to database: {}", settings.neo4j_uri)
-    db_connection = GraphDatabase.driver(settings.neo4j_uri, auth=settings.neo4j_auth)
+    db_connection = AsyncGraphDatabase.driver(
+        settings.neo4j_uri, auth=settings.neo4j_auth)
     profile_repository = ProfileNeo4jRepository(db_connection)
     logger.debug("Database connection established")
 
     admin = KeycloakAdmin(
-            server_url=settings.keycloak_server_url,
-            username=settings.keycloak_username,
-            password=settings.keycloak_password,
-            realm_name=settings.keycloak_realm_name,
-            user_realm_name=settings.keycloak_user_realm_name)
+        server_url=settings.keycloak_server_url,
+        username=settings.keycloak_username,
+        password=settings.keycloak_password,
+        realm_name=settings.keycloak_realm_name,
+        user_realm_name=settings.keycloak_user_realm_name)
     keycloak = KeycloakClient(admin)
     logger.debug("Keycloak client created {}", settings.keycloak_server_url)
 
