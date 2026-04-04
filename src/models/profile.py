@@ -12,9 +12,10 @@ class ProfileStatusEnum(str, Enum):
 
 @dataclass
 class Profile:
-    '''
+    """
     Profile dataclass model
-    '''
+    """
+
     id: uuid.UUID
     password_hash: str
     registration_date: datetime

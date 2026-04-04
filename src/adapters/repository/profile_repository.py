@@ -4,8 +4,7 @@ from src.models.profile import Profile
 
 
 class ProfileNeo4jRepository:
-    def __init__(self, driver: AsyncDriver) -> None:
-        ...
+    def __init__(self, driver: AsyncDriver) -> None: ...
 
     async def create_profile(self, profile: Profile) -> None: ...
 

@@ -3,8 +3,7 @@ from src.models.profile import Profile
 
 
 class KafkaProducerClient:
-    def __init__(self, producer: AIOKafkaProducer) -> None:
-        ...
+    def __init__(self, producer: AIOKafkaProducer) -> None: ...
 
     async def send_create_profile(self, profile: Profile) -> None: ...
 

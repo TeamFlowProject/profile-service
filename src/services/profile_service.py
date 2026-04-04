@@ -7,17 +7,17 @@ import uuid
 
 class ProfileService:
     def __init__(
-            self,
-            profile_repository: ProfileRepository,
-            kafka_producer: ProfileKafkaProducer,
-            keycloak_connection: KeyCloak
+        self,
+        profile_repository: ProfileRepository,
+        kafka_producer: ProfileKafkaProducer,
+        keycloak_connection: KeyCloak,
     ) -> None:
         self._profile_repository = profile_repository
         self._kafka_producer = kafka_producer
         self._keycloak_connection = keycloak_connection
 
     async def create_profile(self, profile: Profile) -> uuid.UUID:
-        '''
+        """
         Create a new user profile
 
         Args:
@@ -25,7 +25,7 @@ class ProfileService:
 
         Returns:
             uuid.UUID: The id of the created profile
-        '''
+        """
         profile.id = uuid.uuid4()
 
         try:
@@ -34,11 +34,12 @@ class ProfileService:
             await self._keycloak_connection.keycloak_create_user(profile)
         except adapter_errors.ProfileEmailAlreadyTaken as e:
             raise services_errors.ProfileEmailAlreadyTaken(
-                "Profile with given email already exists.") from e
+                "Profile with given email already exists."
+            ) from e
         return profile.id
 
     async def get_profile(self, id: uuid.UUID) -> Profile:
-        '''
+        """
         Get a profile by ID
 
         Args:
@@ -49,16 +50,17 @@ class ProfileService:
 
         Raises:
             ProfileNotFoundError: If the profile could not be found
-        '''
+        """
         try:
             profile = await self._profile_repository.get_profile(id)
             return profile
         except adapter_errors.ProfileNotFoundError as e:
             raise services_errors.ProfileNotFoundError(
-                "Couldn't find profile by given ID") from e
+                "Couldn't find profile by given ID"
+            ) from e
 
     async def get_profiles(self, ids: list[uuid.UUID]) -> list[Profile]:
-        '''
+        """
         Get all profile by list of IDs
 
         Args:
@@ -69,15 +71,16 @@ class ProfileService:
 
         Raises:
             ProfileNotFoundError: If one of profiles could not be found
-        '''
+        """
         try:
             return await self._profile_repository.get_profiles(ids)
         except adapter_errors.ProfileNotFoundError as e:
             raise services_errors.ProfileNotFoundError(
-                "Couldn't find one of profiles by given ID") from e
+                "Couldn't find one of profiles by given ID"
+            ) from e
 
     async def update_profile(self, profile: Profile) -> None:
-        '''
+        """
         Update the user profile
 
         Args:
@@ -85,9 +88,8 @@ class ProfileService:
 
         Raises:
             ProfileNotFoundError: If the profile could not be updated
-        '''
+        """
         try:
-
             profile_old = await self._profile_repository.get_profile(profile.id)
             await self._profile_repository.update_profile(profile)
             if (
@@ -99,4 +101,5 @@ class ProfileService:
                 await self._kafka_producer.send_update_profile(profile)
         except adapter_errors.ProfileNotFoundError as e:
             raise services_errors.ProfileNotFoundError(
-                "Failed to update profile") from e
+                "Failed to update profile"
+            ) from e

@@ -18,4 +18,5 @@ class ProfileKafkaProducer(Protocol):
 
 class KeyCloak(Protocol):
     async def keycloak_create_user(self, profile: Profile) -> None: ...
+
     # !!! Is there a necessity to send a request when update or complete profile

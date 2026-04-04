@@ -53,7 +53,9 @@ def keycloak():
 
 @pytest.fixture
 def service(repo, kafka, keycloak):
-    return ProfileService(profile_repository=repo, kafka_producer=kafka, keycloak_connection=keycloak)
+    return ProfileService(
+        profile_repository=repo, kafka_producer=kafka, keycloak_connection=keycloak
+    )
 
 
 class TestCreateProfile:
@@ -83,7 +85,8 @@ class TestUpdateProfile:
     async def test_call_repo_and_kafka_with_complete_status(self, service, repo, kafka):
         old_profile = make_profile(status=ProfileStatusEnum.CONFIRMED)
         new_profile = make_profile(
-            id=old_profile.id, status=ProfileStatusEnum.COMPLETED)
+            id=old_profile.id, status=ProfileStatusEnum.COMPLETED
+        )
         repo.get_profile.return_value = old_profile
         repo.update_profile.return_value = None
 
@@ -98,7 +101,8 @@ class TestUpdateProfile:
     async def test_call_repo_and_kafka_with_update_status(self, service, repo, kafka):
         old_profile = make_profile(status=ProfileStatusEnum.COMPLETED)
         new_profile = make_profile(
-            id=old_profile.id, status=ProfileStatusEnum.COMPLETED)
+            id=old_profile.id, status=ProfileStatusEnum.COMPLETED
+        )
         repo.get_profile.return_value = old_profile
         repo.update_profile.return_value = None
 
