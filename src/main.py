@@ -1,13 +1,12 @@
 import asyncio
 
-import psycopg
 import typer
 import uvicorn
 import sys
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from fastapi import FastAPI
 from loguru import logger
-from neo4j import GraphDatabase
+from neo4j import AsyncGraphDatabase
 from keycloak import KeycloakAdmin
 
 from src.adapters.clients.kafka_producer import KafkaProducerClient
@@ -22,16 +21,19 @@ from src.config import Settings
 async def _run(settings: Settings) -> None:
     # Connecting database interconnection implementation with Duck Typing
     logger.debug("Connecting to database: {}", settings.neo4j_uri)
-    db_connection = GraphDatabase.driver(settings.neo4j_uri, auth=settings.neo4j_auth)
+    db_connection = AsyncGraphDatabase.driver(
+        settings.neo4j_uri, auth=settings.neo4j_auth
+    )
     profile_repository = ProfileNeo4jRepository(db_connection)
     logger.debug("Database connection established")
 
     admin = KeycloakAdmin(
-            server_url=settings.keycloak_server_url,
-            username=settings.keycloak_username,
-            password=settings.keycloak_password,
-            realm_name=settings.keycloak_realm_name,
-            user_realm_name=settings.keycloak_user_realm_name)
+        server_url=settings.keycloak_server_url,
+        username=settings.keycloak_username,
+        password=settings.keycloak_password,
+        realm_name=settings.keycloak_realm_name,
+        user_realm_name=settings.keycloak_user_realm_name,
+    )
     keycloak = KeycloakClient(admin)
     logger.debug("Keycloak client created {}", settings.keycloak_server_url)
 
@@ -43,8 +45,7 @@ async def _run(settings: Settings) -> None:
     logger.debug("Kafka producer started")
 
     # Starting service itself with prepared submodules
-    profile_service = ProfileService(
-        profile_repository, kafka_producer, keycloak)
+    profile_service = ProfileService(profile_repository, kafka_producer, keycloak)
     logger.debug("Profile Service started")
 
     # Start Fastapi app and make it able to use all endpoints
@@ -54,19 +55,24 @@ async def _run(settings: Settings) -> None:
     logger.debug("HTTP router registered")
 
     # Create kafka consumer to receive messages from other services
-    consumer = AIOKafkaConsumer(settings.kafka_topic_commands,
-                                bootstrap_servers=settings.kafka_bootstrap, group_id=settings.kafka_group_id)
+    consumer = AIOKafkaConsumer(
+        settings.kafka_topic_commands,
+        bootstrap_servers=settings.kafka_bootstrap,
+        group_id=settings.kafka_group_id,
+    )
     kafka_consumer = ProfileKafkaConsumer(consumer, profile_service)
     logger.debug(
-        "Kafka consumer created: topic={}, group={}", settings.kafka_topic_commands, settings.kafka_group_id
+        "Kafka consumer created: topic={}, group={}",
+        settings.kafka_topic_commands,
+        settings.kafka_group_id,
     )
 
     # Starting service of assembled app with prepared parameters using uvicorn
     config = uvicorn.Config(
-        fastapi_app, host=settings.http_host, port=settings.http_port)
+        fastapi_app, host=settings.http_host, port=settings.http_port
+    )
     server = uvicorn.Server(config)
-    logger.info("Starting service on {}:{}",
-                settings.http_host, settings.http_port)
+    logger.info("Starting service on {}:{}", settings.http_host, settings.http_port)
 
     try:
         await asyncio.gather(server.serve(), kafka_consumer.start())
@@ -75,6 +81,7 @@ async def _run(settings: Settings) -> None:
         await producer.stop()
         await db_connection.close()
         logger.info("Shutdown complete")
+
 
 app = typer.Typer()
 

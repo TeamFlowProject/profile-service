@@ -2,8 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_auth: tuple = ("neo4j", "password")
@@ -13,7 +12,7 @@ class Settings(BaseSettings):
     keycloak_password: str = "password"
     keycloak_realm_name: str = "master"
     keycloak_user_realm_name: str = "only_if_other_realm_than_master"
-    
+
     kafka_bootstrap: str = "localhost:9092"
     http_host: str = "0.0.0.0"
     http_port: int = 8000
