@@ -1,10 +1,10 @@
-import psycopg
 import uuid
+from neo4j import AsyncDriver
 from src.models.profile import Profile
 
 
 class ProfileNeo4jRepository:
-    def __init__(self, connection: psycopg.AsyncConnection) -> None:
+    def __init__(self, driver: AsyncDriver) -> None:
         ...
 
     async def create_profile(self, profile: Profile) -> None: ...

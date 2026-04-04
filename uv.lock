@@ -629,6 +629,18 @@ wheels = [
 ]
 
 [[package]]
+name = "neo4j"
+version = "6.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/01/d6ce65e4647f6cb2b9cca3b813978f7329b54b4e36660aaec1ddf0ccce7a/neo4j-6.1.0.tar.gz", hash = "sha256:b5dde8c0d8481e7b6ae3733569d990dd3e5befdc5d452f531ad1884ed3500b84", size = 239629, upload-time = "2026-01-12T11:27:34.777Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/70/5c/ee71e2dd955045425ef44283f40ba1da67673cf06404916ca2950ac0cd39/neo4j-6.1.0-py3-none-any.whl", hash = "sha256:3bd93941f3a3559af197031157220af9fd71f4f93a311db687bd69ffa417b67d", size = 325326, upload-time = "2026-01-12T11:27:33.196Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -655,6 +667,7 @@ dependencies = [
     { name = "aiokafka" },
     { name = "fastapi" },
     { name = "loguru" },
+    { name = "neo4j" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -677,6 +690,7 @@ requires-dist = [
     { name = "aiokafka", specifier = ">=0.12.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "loguru", specifier = ">=0.7.0" },
+    { name = "neo4j", specifier = ">=6.0.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.0" },
     { name = "pydantic", specifier = ">=2.10.0" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
@@ -987,6 +1001,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/db/5c/da8288220c7cf53e7a077f6a17a1bfe4e1a1869e4b441a4c0f57917cf3f2/python_keycloak_async-2.17.1.tar.gz", hash = "sha256:0715d8dcbed9c1a59e5f5f98ffdf2959a06bda9559b9657ec6cfa5ae09b3eb0e", size = 45337, upload-time = "2023-05-16T03:01:51.639Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/59/0c/6783f13394e5836967e6f8b33685b050649a964968df6ef6178a1e8d744e/python_keycloak_async-2.17.1-py3-none-any.whl", hash = "sha256:9f965e32f54a774700c760af26dcb2662d11c5003dbf10d0d2e2ec03c8f93a27", size = 57456, upload-time = "2023-05-16T03:01:49.138Z" },
+]
+
+[[package]]
+name = "pytz"
+version = "2026.1.post1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/56/db/b8721d71d945e6a8ac63c0fc900b2067181dbb50805958d4d4661cf7d277/pytz-2026.1.post1.tar.gz", hash = "sha256:3378dde6a0c3d26719182142c56e60c7f9af7e968076f31aae569d72a0358ee1", size = 321088, upload-time = "2026-03-03T07:47:50.683Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/10/99/781fe0c827be2742bcc775efefccb3b048a3a9c6ce9aec0cbf4a101677e5/pytz-2026.1.post1-py2.py3-none-any.whl", hash = "sha256:f2fd16142fda348286a75e1a524be810bb05d444e5a081f37f7affc635035f7a", size = 510489, upload-time = "2026-03-03T07:47:49.167Z" },
 ]
 
 [[package]]

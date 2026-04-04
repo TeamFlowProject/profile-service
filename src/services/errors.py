@@ -4,3 +4,7 @@ class ProfileError(Exception):
 
 class ProfileNotFoundError(ProfileError):
     ...
+
+
+class ProfileEmailAlreadyTaken(ProfileError):
+    ...

@@ -16,7 +16,9 @@ def make_profile(**kwargs) -> Profile:
         password_hash="hashed_password",
         registration_date=datetime(2026, 1, 1),
         status=ProfileStatusEnum.PENDING,
-        full_name="Test User",
+        name="Name",
+        surname="Surname",
+        patronymic="Patronymic",
         stack="Python",
         skills="FastAPI, PostgreSQL",
         experience="1 year",
@@ -68,17 +70,44 @@ class TestCreateProfile:
         repo.create_profile.assert_called_once_with(profile)
         kafka.send_create_profile.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_email_already_taken(self, service, repo):
+        repo.create_profile.side_effect = adapter_errors.ProfileEmailAlreadyTaken
+
+        with pytest.raises(service_errors.ProfileEmailAlreadyTaken):
+            await service.create_profile(make_profile())
+
 
 class TestUpdateProfile:
     @pytest.mark.asyncio
-    async def test_call_repo_and_kafka(self, service, repo, kafka):
+    async def test_call_repo_and_kafka_with_complete_status(self, service, repo, kafka):
         old_profile = make_profile(status=ProfileStatusEnum.CONFIRMED)
         new_profile = make_profile(
             id=old_profile.id, status=ProfileStatusEnum.COMPLETED)
-        repo.update_profile.return_value = [old_profile, new_profile]
+        repo.get_profile.return_value = old_profile
+        repo.update_profile.return_value = None
+
         await service.update_profile(new_profile)
+
+        repo.get_profile.assert_called_once_with(new_profile.id)
+        repo.update_profile.assert_called_once_with(new_profile)
+        kafka.send_complete_profile.assert_called_once_with(new_profile)
+        kafka.send_update_profile.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_call_repo_and_kafka_with_update_status(self, service, repo, kafka):
+        old_profile = make_profile(status=ProfileStatusEnum.COMPLETED)
+        new_profile = make_profile(
+            id=old_profile.id, status=ProfileStatusEnum.COMPLETED)
+        repo.get_profile.return_value = old_profile
+        repo.update_profile.return_value = None
+
+        await service.update_profile(new_profile)
+
+        repo.get_profile.assert_called_once_with(new_profile.id)
         repo.update_profile.assert_called_once_with(new_profile)
         kafka.send_update_profile.assert_called_once_with(new_profile)
+        kafka.send_complete_profile.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_raises_service_error_when_not_found(self, service, repo, kafka):

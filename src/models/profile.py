@@ -19,7 +19,9 @@ class Profile:
     password_hash: str
     registration_date: datetime
     status: ProfileStatusEnum
-    full_name: str
+    name: str
+    surname: str
+    patronymic: str
     stack: str
     skills: str
     experience: str
