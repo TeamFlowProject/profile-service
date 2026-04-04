@@ -58,6 +58,7 @@ def service(repo, kafka, keycloak):
     )
 
 
+@pytest.mark.unit
 class TestCreateProfile:
     @pytest.mark.asyncio
     async def test_return_id(self, service):
@@ -80,6 +81,7 @@ class TestCreateProfile:
             await service.create_profile(make_profile())
 
 
+@pytest.mark.unit
 class TestUpdateProfile:
     @pytest.mark.asyncio
     async def test_call_repo_and_kafka_with_complete_status(self, service, repo, kafka):
@@ -123,6 +125,7 @@ class TestUpdateProfile:
         kafka.send_update_service.assert_not_called()
 
 
+@pytest.mark.unit
 class TestGetProfile:
     @pytest.mark.asyncio
     async def test_returns_profile(self, service, repo):
@@ -142,6 +145,7 @@ class TestGetProfile:
             await service.get_profile(uuid.uuid4())
 
 
+@pytest.mark.unit
 class TestGetProfiles:
     @pytest.mark.asyncio
     async def test_returns_profiles(self, service, repo):
