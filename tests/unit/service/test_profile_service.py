@@ -13,9 +13,9 @@ from src.services.profile_service import ProfileService
 def make_profile(**kwargs) -> Profile:
     defaults = dict(
         id=uuid.uuid4(),
+        mail="test@mail.ru",
         password_hash="hashed_password",
         registration_date=datetime(2026, 1, 1),
-        status=ProfileStatusEnum.PENDING,
         name="Name",
         surname="Surname",
         patronymic="Patronymic",
@@ -31,6 +31,26 @@ def make_profile(**kwargs) -> Profile:
         city="Test City",
         portfolio="https://example.com",
         about="Just a test user",
+    )
+    defaults.update(kwargs)
+    return Profile(**defaults)  # type: ignore
+
+
+def make_small_profile(**kwargs) -> Profile:
+    defaults = dict(
+        id=uuid.uuid4(),
+        mail="test@mail.ru",
+        password_hash="hashed_password",
+        registration_date=datetime(2026, 1, 1),
+    )
+    defaults.update(kwargs)
+    return Profile(**defaults)  # type: ignore
+
+
+def make_wrong_profile(**kwargs) -> Profile:
+    defaults = dict(
+        id=uuid.uuid4(),
+        mail="test@mail.ru",
     )
     defaults.update(kwargs)
     return Profile(**defaults)  # type: ignore
@@ -164,3 +184,21 @@ class TestGetProfiles:
 
         with pytest.raises(service_errors.ProfileNotFoundError):
             await service.get_profiles(uuid.uuid4())
+
+
+@pytest.mark.unit
+class TestValidation:
+    def test_validate_completed_profile(self, service):
+        profile = make_profile()
+        service._validate(profile)
+        assert profile.status == ProfileStatusEnum.COMPLETED
+
+    def test_validate_pending_profile(self, service):
+        profile = make_small_profile()
+        service._validate(profile)
+        assert profile.status == ProfileStatusEnum.PENDING
+
+    def test_validate_profile_error(self, service):
+        profile = make_wrong_profile()
+        with pytest.raises(service_errors.ProfileCompositionError):
+            service._validate(profile)

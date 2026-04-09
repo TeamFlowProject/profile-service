@@ -27,6 +27,7 @@ class ProfileService:
             uuid.UUID: The id of the created profile
         """
         profile.id = uuid.uuid4()
+        self._validate(profile)
 
         try:
             await self._profile_repository.create_profile(profile)
@@ -91,6 +92,7 @@ class ProfileService:
         """
         try:
             profile_old = await self._profile_repository.get_profile(profile.id)
+            self._validate(profile)
             await self._profile_repository.update_profile(profile)
             if (
                 profile_old.status != ProfileStatusEnum.COMPLETED
@@ -103,3 +105,46 @@ class ProfileService:
             raise services_errors.ProfileNotFoundError(
                 "Failed to update profile"
             ) from e
+
+    def _validate(self, profile: Profile) -> None:
+        """
+        Assign profile status based on the current profile content
+
+        Args:
+            profile (Profile): The user profile to validate
+
+        Raises:
+            ProfileCompositionError: If the profile field are wrong and no status can be assign
+        """
+        if all(
+            [
+                profile.id,
+                profile.registration_date,
+                profile.mail,
+                profile.password_hash,
+                profile.name,
+                profile.surname,
+                profile.patronymic,
+                profile.stack,
+                profile.skills,
+                profile.experience,
+                profile.desired_role,
+                profile.busyness,
+                profile.contact_mail,
+                profile.contact_number,
+                profile.work_place,
+                profile.work_position,
+                profile.city,
+                profile.portfolio,
+                profile.about,
+            ]
+        ):
+            profile.status = ProfileStatusEnum.COMPLETED
+        elif all(
+            [profile.id, profile.mail, profile.password_hash, profile.registration_date]
+        ):
+            profile.status = ProfileStatusEnum.PENDING
+        else:
+            raise services_errors.ProfileCompositionError(
+                "Profile composition is invalid"
+            )
