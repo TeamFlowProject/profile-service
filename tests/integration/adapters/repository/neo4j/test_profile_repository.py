@@ -9,10 +9,10 @@ import src.adapters.repository.errors as adapters_error
 from src.adapters.repository.neo4j.profile_repository import ProfileNeo4jRepository
 
 
-def _make_profile() -> Profile:
+def _make_profile(mail: str = "test@mail.com") -> Profile:
     return Profile(
         id=uuid.uuid4(),
-        mail="test@mail.com",
+        mail=mail,
         password_hash="hash",
         registration_date=datetime.now(),
 
@@ -58,11 +58,11 @@ class TestProfileRepository:
 
     @pytest.mark.asyncio
     async def test_get_profiles(self, profile_repository, clean_neo4j):
-        profile1 = _make_profile()
+        profile1 = _make_profile(mail="test1@mail.com")
         await profile_repository.create_profile(profile1)
-        profile2 = _make_profile()
+        profile2 = _make_profile(mail="test2@mail.com")
         await profile_repository.create_profile(profile2)
-        profile3 = _make_profile()
+        profile3 = _make_profile(mail="test3@mail.com")
         await profile_repository.create_profile(profile3)
 
         ids = [profile1.id, profile2.id, profile3.id]

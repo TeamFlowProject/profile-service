@@ -139,6 +139,7 @@ class ProfileNeo4jRepository:
             raise adapter_errors.ProfileNotFoundError(
                 f"Given profile doesn't exist")
 
+    @staticmethod
     def _convert_profile_to_dictionary(profile: Profile) -> dict:
         '''
         Convert profile model object to a dictionary
@@ -175,6 +176,7 @@ class ProfileNeo4jRepository:
         }
         return profile_dict
 
+    @staticmethod
     def _convert_dictionary_to_profile(profile_dict: dict) -> Profile:
         '''
         Convert profile dictionary to a profile model object

@@ -9,29 +9,31 @@ from testcontainers.core.config import testcontainers_config
 
 @pytest.fixture(scope="session")
 def neo4j_container():
-    testcontainers_config.timeout = 300
-    neo4j = Neo4jContainer("neo4j:5")
-    neo4j.with_env("NEO4J_AUTH", "neo4j/test_password")
+    neo4j = Neo4jContainer("neo4j:5").with_env("NEO4J_PLUGINS", "[]")
     neo4j.start()
-    try:
-        uri = f"bolt://{neo4j.get_container_host_ip()}:{neo4j.get_exposed_port(7687)}"
-        user = "neo4j"
-        password = "test_password"
 
-        driver = GraphDatabase.driver(uri, auth=(user, password))
+    driver = None
+    try:
+        uri = neo4j.get_connection_url()
+        driver = GraphDatabase.driver(
+            uri, auth=(neo4j.username, neo4j.password)
+        )
+        driver.verify_connectivity()
+
         with driver.session() as session:
             session.run("""
                 CREATE CONSTRAINT profile_mail_unique IF NOT EXISTS
                 FOR (p:Profile) REQUIRE p.mail IS UNIQUE
             """)
-        driver.close()
 
         yield {
             "uri": uri,
-            "user": user,
-            "password": password
+            "user": neo4j.username,
+            "password": neo4j.password,
         }
     finally:
+        if driver:
+            driver.close()
         neo4j.stop()
 
 
@@ -41,7 +43,7 @@ async def neo4j_driver(neo4j_container):
         neo4j_container["uri"],
         auth=(neo4j_container["user"], neo4j_container["password"]),
         max_connection_pool_size=10,
-        connection_acquisition_timeout=30
+        connection_acquisition_timeout=30,
     )
 
     await driver.verify_connectivity()
