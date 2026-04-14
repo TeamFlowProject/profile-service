@@ -2,37 +2,37 @@ import pytest
 import pytest_asyncio
 from testcontainers.neo4j import Neo4jContainer
 from neo4j import AsyncGraphDatabase
+from neo4j import GraphDatabase
 from src.adapters.repository.neo4j.profile_repository import ProfileNeo4jRepository
+from testcontainers.core.config import testcontainers_config
 
 
 @pytest.fixture(scope="session")
 def neo4j_container():
-    with Neo4jContainer("neo4j:5") as neo4j:
-        neo4j.with_admin_password("test_password")
-
-        neo4j.start()
-
+    testcontainers_config.timeout = 300
+    neo4j = Neo4jContainer("neo4j:5")
+    neo4j.with_env("NEO4J_AUTH", "neo4j/test_password")
+    neo4j.start()
+    try:
         uri = f"bolt://{neo4j.get_container_host_ip()}:{neo4j.get_exposed_port(7687)}"
         user = "neo4j"
         password = "test_password"
 
-        async def setup_neo4j():
-            driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
-            async with driver.session() as session:
-                await session.run("""
-                    CREATE CONSTRAINT profile_mail_unique IF NOT EXISTS
-                    FOR (p:Profile) REQUIRE p.mail IS UNIQUE
-                """)
-            await driver.close()
-
-        import asyncio
-        asyncio.run(setup_neo4j())
+        driver = GraphDatabase.driver(uri, auth=(user, password))
+        with driver.session() as session:
+            session.run("""
+                CREATE CONSTRAINT profile_mail_unique IF NOT EXISTS
+                FOR (p:Profile) REQUIRE p.mail IS UNIQUE
+            """)
+        driver.close()
 
         yield {
             "uri": uri,
             "user": user,
             "password": password
         }
+    finally:
+        neo4j.stop()
 
 
 @pytest_asyncio.fixture(scope="function")
