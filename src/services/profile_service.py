@@ -124,24 +124,14 @@ class ProfileService:
                 profile.password_hash,
                 profile.name,
                 profile.surname,
-                profile.patronymic,
-                profile.stack,
-                profile.skills,
-                profile.experience,
                 profile.desired_role,
-                profile.busyness,
-                profile.contact_mail,
-                profile.contact_number,
-                profile.work_place,
-                profile.work_position,
                 profile.city,
-                profile.portfolio,
-                profile.about,
             ]
         ):
             profile.status = ProfileStatusEnum.COMPLETED
         elif all(
-            [profile.id, profile.mail, profile.password_hash, profile.registration_date]
+            [profile.id, profile.mail, profile.password_hash,
+                profile.registration_date]
         ):
             profile.status = ProfileStatusEnum.PENDING
         else:

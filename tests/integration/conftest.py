@@ -1,10 +1,11 @@
 import pytest
+import asyncio
 import pytest_asyncio
 from testcontainers.neo4j import Neo4jContainer
 from neo4j import AsyncGraphDatabase
 from neo4j import GraphDatabase
 from src.adapters.repository.neo4j.profile_repository import ProfileNeo4jRepository
-from testcontainers.core.config import testcontainers_config
+from neo4j_migrations import MigrationClient
 
 
 @pytest.fixture(scope="session")
@@ -15,16 +16,14 @@ def neo4j_container():
     driver = None
     try:
         uri = neo4j.get_connection_url()
-        driver = GraphDatabase.driver(
-            uri, auth=(neo4j.username, neo4j.password)
-        )
-        driver.verify_connectivity()
 
-        with driver.session() as session:
-            session.run("""
-                CREATE CONSTRAINT profile_mail_unique IF NOT EXISTS
-                FOR (p:Profile) REQUIRE p.mail IS UNIQUE
-            """)
+        client = MigrationClient(
+            uri=uri,
+            auth=(neo4j.username, neo4j.password),
+            migration_dir="migrations"
+        )
+
+        client.apply()
 
         yield {
             "uri": uri,

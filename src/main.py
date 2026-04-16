@@ -11,15 +11,17 @@ from keycloak import KeycloakAdmin
 
 from src.adapters.clients.kafka_producer import KafkaProducerClient
 from src.adapters.clients.keycloak import KeycloakClient
-from src.adapters.repository.profile_repository import ProfileNeo4jRepository
+from src.adapters.repository.neo4j.profile_repository import ProfileNeo4jRepository
 from src.api.http.profile_router import create_profile_router
 from src.api.kafka.profile_consumer import ProfileKafkaConsumer
 from src.services.profile_service import ProfileService
 from src.config import Settings
+from migrations.migrate import run_migrations
 
 
 async def _run(settings: Settings) -> None:
     # Connecting database interconnection implementation with Duck Typing
+    run_migrations(settings)
     logger.debug("Connecting to database: {}", settings.neo4j_uri)
     db_connection = AsyncGraphDatabase.driver(
         settings.neo4j_uri, auth=settings.neo4j_auth
@@ -45,7 +47,8 @@ async def _run(settings: Settings) -> None:
     logger.debug("Kafka producer started")
 
     # Starting service itself with prepared submodules
-    profile_service = ProfileService(profile_repository, kafka_producer, keycloak)
+    profile_service = ProfileService(
+        profile_repository, kafka_producer, keycloak)
     logger.debug("Profile Service started")
 
     # Start Fastapi app and make it able to use all endpoints
@@ -72,7 +75,8 @@ async def _run(settings: Settings) -> None:
         fastapi_app, host=settings.http_host, port=settings.http_port
     )
     server = uvicorn.Server(config)
-    logger.info("Starting service on {}:{}", settings.http_host, settings.http_port)
+    logger.info("Starting service on {}:{}",
+                settings.http_host, settings.http_port)
 
     try:
         await asyncio.gather(server.serve(), kafka_consumer.start())
@@ -108,6 +112,10 @@ def migrate() -> None:
     settings = Settings()
     _setup_logger(settings)
     logger.info("Running migration...")
+
+    run_migrations(settings)
+
+    logger.info("Migrations applied")
 
 
 if __name__ == "__main__":
