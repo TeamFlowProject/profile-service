@@ -154,7 +154,9 @@ class TestUpdateProfile:
         kafka.send_complete_profile.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_raises_error_on_completed_to_non_completed_transition(self, service, repo):
+    async def test_raises_error_on_completed_to_non_completed_transition(
+        self, service, repo
+    ):
         old_profile = make_profile(status=ProfileStatusEnum.COMPLETED)
         new_profile = make_profile(id=old_profile.id, status=ProfileStatusEnum.PENDING)
         repo.get_profile.return_value = old_profile

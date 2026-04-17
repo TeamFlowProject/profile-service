@@ -47,8 +47,7 @@ async def _run(settings: Settings) -> None:
     logger.debug("Kafka producer started")
 
     # Starting service itself with prepared submodules
-    profile_service = ProfileService(
-        profile_repository, kafka_producer, keycloak)
+    profile_service = ProfileService(profile_repository, kafka_producer, keycloak)
     logger.debug("Profile Service started")
 
     # Start Fastapi app and make it able to use all endpoints
@@ -75,8 +74,7 @@ async def _run(settings: Settings) -> None:
         fastapi_app, host=settings.http_host, port=settings.http_port
     )
     server = uvicorn.Server(config)
-    logger.info("Starting service on {}:{}",
-                settings.http_host, settings.http_port)
+    logger.info("Starting service on {}:{}", settings.http_host, settings.http_port)
 
     try:
         await asyncio.gather(server.serve(), kafka_consumer.start())

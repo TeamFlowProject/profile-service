@@ -26,7 +26,9 @@ class ProfileNeo4jRepository:
         """
 
         async def tx_func(tx):
-            await tx.run(CREATE_QUERY, self._convert_profile_creation_to_dictionary(profile))
+            await tx.run(
+                CREATE_QUERY, self._convert_profile_creation_to_dictionary(profile)
+            )
 
         try:
             async with self._driver.session() as session:

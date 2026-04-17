@@ -1,12 +1,9 @@
 import uuid
 import pytest
-import pytest_asyncio
 from datetime import datetime
 
 from src.models.profile import Profile, ProfileCreation, ProfileStatusEnum
-from neo4j import AsyncGraphDatabase
 import src.adapters.repository.errors as adapters_error
-from src.adapters.repository.neo4j.profile_repository import ProfileNeo4jRepository
 
 
 def _make_profile_creation(mail: str = "test@mail.com") -> ProfileCreation:
@@ -33,7 +30,6 @@ def _make_profile(mail: str = "test@mail.com", id: uuid.UUID | None = None) -> P
 
 @pytest.mark.integration
 class TestProfileRepository:
-
     @pytest.mark.asyncio
     async def test_create_and_get_profile(self, profile_repository, clean_neo4j):
         profile = _make_profile_creation()
@@ -47,7 +43,9 @@ class TestProfileRepository:
         assert repo_profile.status == profile.status
 
     @pytest.mark.asyncio
-    async def test_create_profile_with_existing_mail(self, profile_repository, clean_neo4j):
+    async def test_create_profile_with_existing_mail(
+        self, profile_repository, clean_neo4j
+    ):
         profile1 = _make_profile_creation()
         profile2 = _make_profile_creation(mail=profile1.mail)
         await profile_repository.create_profile(profile1)
@@ -56,10 +54,12 @@ class TestProfileRepository:
             await profile_repository.create_profile(profile2)
 
     @pytest.mark.asyncio
-    async def test_get_profile_with_non_existent_id(self, profile_repository, clean_neo4j):
+    async def test_get_profile_with_non_existent_id(
+        self, profile_repository, clean_neo4j
+    ):
         random_id = uuid.uuid4()
         with pytest.raises(adapters_error.ProfileNotFoundError):
-            result = await profile_repository.get_profile(random_id)
+            await profile_repository.get_profile(random_id)
 
     @pytest.mark.asyncio
     async def test_get_profiles(self, profile_repository, clean_neo4j):
@@ -92,7 +92,9 @@ class TestProfileRepository:
         assert profiles[2].status == profile3.status
 
     @pytest.mark.asyncio
-    async def test_get_profiles_with_non_existent_id(self, profile_repository, clean_neo4j):
+    async def test_get_profiles_with_non_existent_id(
+        self, profile_repository, clean_neo4j
+    ):
         profile1 = _make_profile_creation()
         await profile_repository.create_profile(profile1)
         random_id = uuid.uuid4()

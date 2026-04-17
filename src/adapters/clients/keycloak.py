@@ -1,5 +1,5 @@
 from keycloak import KeycloakAdmin
-from src.models.profile import Profile, ProfileCreation
+from src.models.profile import ProfileCreation
 
 
 class KeycloakClient:
