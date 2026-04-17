@@ -159,6 +159,8 @@ class TestUpdateProfile:
     ):
         old_profile = make_profile(status=ProfileStatusEnum.COMPLETED)
         new_profile = make_profile(id=old_profile.id, status=ProfileStatusEnum.PENDING)
+        new_profile.name = ""
+        new_profile.surname = ""
         repo.get_profile.return_value = old_profile
 
         with pytest.raises(service_errors.ProfileStatusTransitionError):
