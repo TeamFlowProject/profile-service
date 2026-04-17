@@ -641,6 +641,21 @@ wheels = [
 ]
 
 [[package]]
+name = "neo4j-python-migrations"
+version = "0.1.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "neo4j" },
+    { name = "packaging" },
+    { name = "typer" },
+    { name = "yarl" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f0/f9/6e0f8ddb423a3d654ea1c75e0899461e955688948af996066985633cbe06/neo4j_python_migrations-0.1.4.tar.gz", hash = "sha256:e52afcc2de7c7d5dc713ffb0d25abd355c630c130c0b1a0c147c46ad051eaea3", size = 10371, upload-time = "2025-11-17T21:28:28.717Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/09/d9/140f1abdbecdec458266b34186a017007f3ae2e1896206e5194648a0ee1b/neo4j_python_migrations-0.1.4-py3-none-any.whl", hash = "sha256:a620047188745e8aed714426b88e722cbf2b2f350389eb2023514db39cc339f3", size = 12587, upload-time = "2025-11-17T21:28:27.291Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -668,6 +683,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "loguru" },
     { name = "neo4j" },
+    { name = "neo4j-python-migrations" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -691,6 +707,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "loguru", specifier = ">=0.7.0" },
     { name = "neo4j", specifier = ">=6.0.0" },
+    { name = "neo4j-python-migrations", specifier = ">=0.1.4" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.0" },
     { name = "pydantic", specifier = ">=2.10.0" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },

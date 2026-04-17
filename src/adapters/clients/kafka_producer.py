@@ -1,11 +1,11 @@
 from aiokafka import AIOKafkaProducer
-from src.models.profile import Profile
+from src.models.profile import Profile, ProfileCreation
 
 
 class KafkaProducerClient:
     def __init__(self, producer: AIOKafkaProducer) -> None: ...
 
-    async def send_create_profile(self, profile: Profile) -> None: ...
+    async def send_create_profile(self, profile: ProfileCreation) -> None: ...
 
     async def send_complete_profile(self, profile: Profile) -> None: ...
 

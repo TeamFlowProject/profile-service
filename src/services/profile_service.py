@@ -1,4 +1,4 @@
-from src.models.profile import Profile, ProfileStatusEnum
+from src.models.profile import Profile, ProfileStatusEnum, ProfileCreation
 from src.services.protocols import ProfileRepository, ProfileKafkaProducer, KeyCloak
 import src.services.errors as services_errors
 import src.adapters.repository.errors as adapter_errors
@@ -16,17 +16,16 @@ class ProfileService:
         self._kafka_producer = kafka_producer
         self._keycloak_connection = keycloak_connection
 
-    async def create_profile(self, profile: Profile) -> uuid.UUID:
+    async def create_profile(self, profile: ProfileCreation) -> uuid.UUID:
         """
         Create a new user profile
 
         Args:
-            profile (Profile): The user profile to create
+            profile (ProfileCreation): The user profile to create
 
         Returns:
             uuid.UUID: The id of the created profile
         """
-        profile.id = uuid.uuid4()
 
         try:
             await self._profile_repository.create_profile(profile)
@@ -91,6 +90,16 @@ class ProfileService:
         """
         try:
             profile_old = await self._profile_repository.get_profile(profile.id)
+            self._validate(profile)
+
+            if (
+                profile_old.status == ProfileStatusEnum.COMPLETED
+                and profile.status != ProfileStatusEnum.COMPLETED
+            ):
+                raise services_errors.ProfileStatusTransitionError(
+                    "Missing required fields to update profile"
+                )
+
             await self._profile_repository.update_profile(profile)
             if (
                 profile_old.status != ProfileStatusEnum.COMPLETED
@@ -103,3 +112,35 @@ class ProfileService:
             raise services_errors.ProfileNotFoundError(
                 "Failed to update profile"
             ) from e
+
+    def _validate(self, profile: Profile) -> None:
+        """
+        Assign profile status based on the current profile content
+
+        Args:
+            profile (Profile): The user profile to validate
+
+        Raises:
+            ProfileCompositionError: If the profile field are wrong and no status can be assign
+        """
+        if all(
+            [
+                profile.id,
+                profile.registration_date,
+                profile.mail,
+                profile.password_hash,
+                profile.name,
+                profile.surname,
+                profile.desired_role,
+                profile.city,
+            ]
+        ):
+            profile.status = ProfileStatusEnum.COMPLETED
+        elif all(
+            [profile.id, profile.mail, profile.password_hash, profile.registration_date]
+        ):
+            profile.status = ProfileStatusEnum.PENDING
+        else:
+            raise services_errors.ProfileCompositionError(
+                "Profile composition is invalid"
+            )
