@@ -6,8 +6,20 @@ import pytest
 
 import src.adapters.repository.errors as adapter_errors
 import src.services.errors as service_errors
-from src.models.profile import Profile, ProfileStatusEnum
+from src.models.profile import Profile, ProfileCreation, ProfileStatusEnum
 from src.services.profile_service import ProfileService
+
+
+def make_profile_creation(**kwargs) -> ProfileCreation:
+    defaults = dict(
+        id=uuid.uuid4(),
+        mail="test@mail.ru",
+        password_hash="hashed_password",
+        registration_date=datetime(2026, 1, 1),
+        status=ProfileStatusEnum.PENDING,
+    )
+    defaults.update(kwargs)
+    return ProfileCreation(**defaults)  # type: ignore
 
 
 def make_profile(**kwargs) -> Profile:
@@ -82,23 +94,29 @@ def service(repo, kafka, keycloak):
 class TestCreateProfile:
     @pytest.mark.asyncio
     async def test_return_id(self, service):
-        profile = make_profile()
+        profile = make_profile_creation()
         result = await service.create_profile(profile)
         assert isinstance(result, uuid.UUID)
 
     @pytest.mark.asyncio
     async def test_call_repo_and_kafka(self, service, repo, kafka):
-        profile = make_profile()
+        profile = make_profile_creation()
         await service.create_profile(profile)
         repo.create_profile.assert_called_once_with(profile)
-        kafka.send_create_profile.assert_called_once()
+        kafka.send_create_profile.assert_called_once_with(profile)
+
+    @pytest.mark.asyncio
+    async def test_call_keycloak(self, service, keycloak):
+        profile = make_profile_creation()
+        await service.create_profile(profile)
+        keycloak.keycloak_create_user.assert_called_once_with(profile)
 
     @pytest.mark.asyncio
     async def test_email_already_taken(self, service, repo):
         repo.create_profile.side_effect = adapter_errors.ProfileEmailAlreadyTaken
 
         with pytest.raises(service_errors.ProfileEmailAlreadyTaken):
-            await service.create_profile(make_profile())
+            await service.create_profile(make_profile_creation())
 
 
 @pytest.mark.unit
@@ -134,6 +152,15 @@ class TestUpdateProfile:
         repo.update_profile.assert_called_once_with(new_profile)
         kafka.send_update_profile.assert_called_once_with(new_profile)
         kafka.send_complete_profile.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_raises_error_on_completed_to_non_completed_transition(self, service, repo):
+        old_profile = make_profile(status=ProfileStatusEnum.COMPLETED)
+        new_profile = make_profile(id=old_profile.id, status=ProfileStatusEnum.PENDING)
+        repo.get_profile.return_value = old_profile
+
+        with pytest.raises(service_errors.ProfileStatusTransitionError):
+            await service.update_profile(new_profile)
 
     @pytest.mark.asyncio
     async def test_raises_service_error_when_not_found(self, service, repo, kafka):

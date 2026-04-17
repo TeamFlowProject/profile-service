@@ -1,4 +1,4 @@
-from src.models.profile import Profile, ProfileStatusEnum
+from src.models.profile import Profile, ProfileStatusEnum, ProfileCreation
 from src.services.protocols import ProfileRepository, ProfileKafkaProducer, KeyCloak
 import src.services.errors as services_errors
 import src.adapters.repository.errors as adapter_errors
@@ -16,18 +16,16 @@ class ProfileService:
         self._kafka_producer = kafka_producer
         self._keycloak_connection = keycloak_connection
 
-    async def create_profile(self, profile: Profile) -> uuid.UUID:
+    async def create_profile(self, profile: ProfileCreation) -> uuid.UUID:
         """
         Create a new user profile
 
         Args:
-            profile (Profile): The user profile to create
+            profile (ProfileCreation): The user profile to create
 
         Returns:
             uuid.UUID: The id of the created profile
         """
-        profile.id = uuid.uuid4()
-        self._validate(profile)
 
         try:
             await self._profile_repository.create_profile(profile)
@@ -93,6 +91,15 @@ class ProfileService:
         try:
             profile_old = await self._profile_repository.get_profile(profile.id)
             self._validate(profile)
+
+            if (
+                profile_old.status == ProfileStatusEnum.COMPLETED
+                and profile.status != ProfileStatusEnum.COMPLETED
+            ):
+                raise services_errors.ProfileStatusTransitionError(
+                    "Missing required fields to update profile"
+                )
+
             await self._profile_repository.update_profile(profile)
             if (
                 profile_old.status != ProfileStatusEnum.COMPLETED
@@ -130,8 +137,7 @@ class ProfileService:
         ):
             profile.status = ProfileStatusEnum.COMPLETED
         elif all(
-            [profile.id, profile.mail, profile.password_hash,
-                profile.registration_date]
+            [profile.id, profile.mail, profile.password_hash, profile.registration_date]
         ):
             profile.status = ProfileStatusEnum.PENDING
         else:

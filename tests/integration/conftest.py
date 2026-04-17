@@ -1,11 +1,10 @@
 import pytest
-import asyncio
 import pytest_asyncio
 from testcontainers.neo4j import Neo4jContainer
 from neo4j import AsyncGraphDatabase
-from neo4j import GraphDatabase
+from migrations.migrate import run_migrations
+from src.config import Settings
 from src.adapters.repository.neo4j.profile_repository import ProfileNeo4jRepository
-from neo4j_migrations import MigrationClient
 
 
 @pytest.fixture(scope="session")
@@ -13,17 +12,14 @@ def neo4j_container():
     neo4j = Neo4jContainer("neo4j:5").with_env("NEO4J_PLUGINS", "[]")
     neo4j.start()
 
-    driver = None
     try:
         uri = neo4j.get_connection_url()
 
-        client = MigrationClient(
-            uri=uri,
-            auth=(neo4j.username, neo4j.password),
-            migration_dir="migrations"
+        settings = Settings(
+            neo4j_uri=uri,
+            neo4j_auth=(neo4j.username, neo4j.password),
         )
-
-        client.apply()
+        run_migrations(settings)
 
         yield {
             "uri": uri,
@@ -31,8 +27,6 @@ def neo4j_container():
             "password": neo4j.password,
         }
     finally:
-        if driver:
-            driver.close()
         neo4j.stop()
 
 

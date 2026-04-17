@@ -12,6 +12,19 @@ class ProfileStatusEnum(str, Enum):
 
 
 @dataclass
+class ProfileCreation:
+    """
+    Profile creation dataclass model
+    """
+
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
+    mail: str = ""
+    password_hash: str = ""
+    registration_date: datetime = field(default_factory=datetime.now)
+    status: ProfileStatusEnum = ProfileStatusEnum.PENDING
+
+
+@dataclass
 class Profile:
     """
     Profile dataclass model
